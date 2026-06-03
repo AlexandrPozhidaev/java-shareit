@@ -21,6 +21,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MissingRequestHeaderException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleMissingHeader(MissingRequestHeaderException ex) {
+        log.warn("Отсутствует заголовок: {}", ex.getHeaderName());
         return new ErrorResponse(
                 "Отсутствует заголовок: " + ex.getHeaderName(),
                 HttpStatus.BAD_REQUEST.value()
@@ -46,12 +47,14 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(EmailAlreadyUsedException.class)
     public ResponseEntity<ErrorResponse> handleEmailAlreadyExists(EmailAlreadyUsedException ex) {
+        log.warn("Email уже используется: {}", ex.getMessage());
         ErrorResponse errorResponse = new ErrorResponse(ex.getMessage(), HttpStatus.CONFLICT.value());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
     }
 
-    @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleUserNotFound(UserNotFoundException ex) {
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleUserNotFound(NotFoundException ex) {
+        log.warn("Пользователь не найден: {}", ex.getMessage());
         ErrorResponse errorResponse = new ErrorResponse("Пользователь не найден", HttpStatus.NOT_FOUND.value());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
     }
@@ -59,6 +62,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AccessDeniedException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public ErrorResponse handleAccessDenied(AccessDeniedException ex) {
+        log.warn("Доступ отклонен: {}", ex.getMessage());
         return new ErrorResponse("Доступ отклонен: " + ex.getMessage(), HttpStatus.FORBIDDEN.value());
     }
 
@@ -80,5 +84,17 @@ public class GlobalExceptionHandler {
                 HttpStatus.BAD_REQUEST.value()
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleAllUnhandledExceptions(Exception ex) {
+        log.error("Необработанное исключение: ", ex);
+        ErrorResponse errorResponse = new ErrorResponse(
+                "Внутренняя ошибка сервера",
+                HttpStatus.INTERNAL_SERVER_ERROR.value()
+        );
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(errorResponse);
     }
 }

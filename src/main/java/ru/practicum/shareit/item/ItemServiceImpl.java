@@ -3,11 +3,7 @@ package ru.practicum.shareit.item;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-import ru.practicum.shareit.exception.ItemNotFoundException;
-import ru.practicum.shareit.exception.UserNotFoundException;
-import ru.practicum.shareit.item.InMemoryItemRepository;
-import ru.practicum.shareit.item.ItemMapper;
-import ru.practicum.shareit.item.ItemService;
+import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.InMemoryUserRepository;
@@ -30,7 +26,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemDto createItem(ItemDto itemDto, Long userId) {
         User owner = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("Пользователь не найден"));
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
 
         Item item = ItemMapper.toItem(itemDto);
         item.setOwner(owner);
@@ -41,7 +37,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemDto updateItem(ItemDto itemDto, Long itemId, Long userId) {
         Item existingItem = itemRepository.findById(itemId)
-                .orElseThrow(() -> new ItemNotFoundException("Вещь не найдена"));
+                .orElseThrow(() -> new NotFoundException("Вещь не найдена"));
 
         User owner = existingItem.getOwner();
         if (owner == null || !owner.getId().equals(userId)) {
@@ -66,14 +62,14 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemDto getItemById(Long itemId, Long userId) {
         Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new RuntimeException("Вещь не найдена"));
+                .orElseThrow(() -> new NotFoundException("Вещь не найдена"));
         return ItemMapper.toItemDto(item);
     }
 
     @Override
     public List<ItemDto> getItemsByOwner(Long userId) {
         userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("Пользователь не найден"));
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
 
         List<Item> items = itemRepository.findByOwnerId(userId);
         return items.stream()

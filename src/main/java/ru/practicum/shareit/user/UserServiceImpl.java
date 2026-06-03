@@ -2,7 +2,7 @@ package ru.practicum.shareit.user;
 
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.EmailAlreadyUsedException;
-import ru.practicum.shareit.exception.UserNotFoundException;
+import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.model.User;
 
 import java.util.List;
@@ -27,7 +27,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User getUserById(Long userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
     }
 
     @Override
@@ -38,7 +38,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User updateUser(User user) {
         User existingUser = userRepository.findById(user.getId())
-                .orElseThrow(() -> new UserNotFoundException("Пользователь с ID " + user.getId() + " не найден"));
+                .orElseThrow(() -> new NotFoundException("Пользователь с ID " + user.getId() + " не найден"));
 
         if (existingUser.getEmail() != null && !existingUser.getEmail().equals(existingUser.getEmail())) {
             return userRepository.create(user);
@@ -61,7 +61,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteUser(Long userId) {
         userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
         userRepository.delete(userId);
     }
 }
