@@ -13,10 +13,8 @@ public class UserDto {
 
     private Long id; // уникальный идентификатор пользователя;
 
-    @NotNull(message = "Имя обязательно")
     private String name; // имя или логин пользователя;
 
-    @NotNull(message = "Электронная почта обязательна")
     @Email(message = "Формат электронной почты должен соответствовать требованиям")
     private String email; // адрес электронной почты
 }
