@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 public class UserDto {
 
     public interface OnCreate {}
+
     public interface OnUpdate {}
 
     private Long id; // уникальный идентификатор пользователя;
