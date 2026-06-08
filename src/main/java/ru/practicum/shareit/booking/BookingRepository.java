@@ -1,5 +1,6 @@
 package ru.practicum.shareit.booking;
 
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -9,19 +10,11 @@ import java.util.List;
 
 public interface BookingRepository extends JpaRepository<Booking, Long> {
 
+    @EntityGraph(attributePaths = {"booker", "item", "item.owner"})
     List<Booking> findByBookerIdOrderByStartDesc(Long bookerId);
 
+    @EntityGraph(attributePaths = {"booker", "item", "item.owner"})
     List<Booking> findByItemOwnerIdOrderByStartDesc(Long ownerId);
-
-    @Query("SELECT b FROM Booking b " +
-            "WHERE b.booker.id = ?1 AND b.end < ?2 " +
-            "ORDER BY b.start DESC")
-    List<Booking> findPastBookingsByBooker(Long bookerId, LocalDateTime now);
-
-    @Query("SELECT b FROM Booking b " +
-            "WHERE b.item.owner.id = ?1 AND b.end < ?2 " +
-            "ORDER BY b.start DESC")
-    List<Booking> findPastBookingsByOwner(Long ownerId, LocalDateTime now);
 
     @Query("SELECT b FROM Booking b " +
             "WHERE b.booker.id = :bookerId " +
@@ -52,16 +45,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     @Query("SELECT b FROM Booking b " +
             "WHERE b.item.owner.id = :ownerId " +
-            "AND b.end < :currentDateTime " +
-            "AND b.status = :status " +
-            "ORDER BY b.end DESC")
-    List<Booking> findByItemOwnerIdAndEndIsBeforeAndStatus(
-            @Param("ownerId") Long ownerId,
-            @Param("currentDateTime") LocalDateTime currentDateTime,
-            @Param("status") BookingStatus status);
-
-    @Query("SELECT b FROM Booking b " +
-            "WHERE b.item.owner.id = :ownerId " +
             "AND b.start > :currentDateTime " +
             "AND b.status = :status " +
             "ORDER BY b.start ASC")
@@ -69,4 +52,17 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             @Param("ownerId") Long ownerId,
             @Param("currentDateTime") LocalDateTime currentDateTime,
             @Param("status") BookingStatus status);
+
+    @Query("SELECT b FROM Booking b " +
+            "WHERE b.item.id = :itemId " +
+            "AND b.end < :currentDateTime " +
+            "AND b.status IN :statuses " +
+            "ORDER BY b.end DESC")
+    List<Booking> findByItemIdAndEndBeforeAndStatusIn(
+            @Param("itemId") Long itemId,
+            @Param("currentDateTime") LocalDateTime currentDateTime,
+            @Param("statuses") List<BookingStatus> statuses);
+
+    @EntityGraph(attributePaths = {"booker", "item"})
+    List<Booking> findByItemIdOrderByStartDesc(@Param("itemId") Long itemId);
 }

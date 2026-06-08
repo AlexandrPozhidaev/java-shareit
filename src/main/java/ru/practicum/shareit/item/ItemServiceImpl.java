@@ -9,6 +9,7 @@ import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.BookingMapper;
 import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.booking.BookingStatus;
+import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
@@ -18,8 +19,7 @@ import ru.practicum.shareit.user.UserRepository;
 import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -76,34 +76,45 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemDto getItemById(Long itemId, Long userId) {
         Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new NotFoundException("Вещь не найдена"));
+                .orElseThrow(() -> new NotFoundException("Item with id " + itemId + " not found"));
+
+        boolean isOwner = item.getOwner().getId().equals(userId);
+
         ItemDto itemDto = ItemMapper.toItemDto(item);
 
-        LocalDateTime now = LocalDateTime.now();
+        List<Booking> bookings = bookingRepository.findByItemIdOrderByStartDesc(itemId);
 
-        List<Booking> pastBookings = bookingRepository.findByItemOwnerIdAndEndIsBeforeAndStatus(
-                item.getOwner().getId(), now, BookingStatus.APPROVED);
-        if (!pastBookings.isEmpty()) {
-            // Сортировка по end в порядке убывания — берём самое последнее
-            pastBookings.sort((b1, b2) -> b2.getEnd().compareTo(b1.getEnd()));
-            itemDto.setLastBooking(BookingMapper.toBookingDto(pastBookings.get(0)));
-        } else {
-            itemDto.setLastBooking(null);
+        BookingDto lastBookingDto = null;
+        BookingDto nextBookingDto = null;
+
+        if (isOwner) {
+            LocalDateTime now = LocalDateTime.now();
+
+            List<Booking> completedBookings = bookings.stream()
+                    .filter(booking -> booking.getEnd().isBefore(now))
+                    .collect(Collectors.toList());
+
+            if (!completedBookings.isEmpty()) {
+                lastBookingDto = BookingMapper.toBookingDto(completedBookings.get(0));
+            }
+
+            List<Booking> futureBookings = bookings.stream()
+                    .filter(booking -> booking.getStart().isAfter(now))
+                    .collect(Collectors.toList());
+
+            if (!futureBookings.isEmpty()) {
+                nextBookingDto = BookingMapper.toBookingDto(futureBookings.get(0));
+            }
         }
 
-        List<Booking> futureBookings = bookingRepository.findByItemOwnerIdAndStartIsAfterAndStatus(
-                item.getOwner().getId(), now, BookingStatus.APPROVED);
-        if (!futureBookings.isEmpty()) {
-            futureBookings.sort((b1, b2) -> b1.getStart().compareTo(b2.getStart()));
-            itemDto.setNextBooking(BookingMapper.toBookingDto(futureBookings.get(0)));
-        } else {
-            itemDto.setNextBooking(null);
-        }
+        itemDto.setLastBooking(lastBookingDto);
+        itemDto.setNextBooking(nextBookingDto);
 
         List<Comment> comments = commentRepository.findByItemIdOrderByCreatedDesc(itemId);
-        itemDto.setComments(comments.stream()
+        List<CommentDto> commentDtos = comments.stream()
                 .map(CommentMapper::toCommentDto)
-                .collect(Collectors.toList()));
+                .collect(Collectors.toList());
+        itemDto.setComments(commentDtos);
 
         return itemDto;
     }
