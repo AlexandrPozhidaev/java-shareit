@@ -14,20 +14,20 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class BookingDto {
 
-    private Long id; //  уникальный идентификатор бронирования;
+    private Long id;
 
-    private LocalDateTime start; // дата и время начала бронирования;
+    private LocalDateTime start;
 
-    private LocalDateTime end; // дата и время конца бронирования;
+    private LocalDateTime end;
 
-    private Long itemId; // id вещи, которую пользователь бронирует;
+    private Long itemId;
 
-    private Long bookerId; // id пользователя, который осуществляет бронирование;
+    private Long bookerId;
 
-    private BookingStatus status; // статус бронирования
+    private BookingStatus status;
 
-    private ItemDto item; //  вещь
+    private ItemDto item;
 
-    private UserDto booker; // пользователь
+    private UserDto booker;
 
 }

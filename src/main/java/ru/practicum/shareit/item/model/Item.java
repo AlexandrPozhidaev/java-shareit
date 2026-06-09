@@ -1,35 +1,36 @@
 package ru.practicum.shareit.item.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import ru.practicum.shareit.request.ItemRequest;
 import ru.practicum.shareit.user.model.User;
 
 @Entity
 @Table(name = "items")
-@Data
+@Getter
+@Setter
+@RequiredArgsConstructor
 @NoArgsConstructor
 public class Item {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // уникальный идентификатор вещи;
+    private Long id;
 
     @Column(name = "name", nullable = false)
-    private String name; // краткое название;
+    private String name;
 
     @Column(name = "description")
-    private String description; // развёрнутое описание;
+    private String description;
 
     @Column(name = "is_available", nullable = false)
-    private Boolean available; // статус о том, доступна или нет вещь для аренды;
+    private Boolean available;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id", nullable = false)
-    private User owner; // владелец вещи;
+    private User owner;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "request_id")
-    private ItemRequest request; // если вещь была создана по запросу другого пользователя, то в этом поле будет храниться ссылка на соответствующий запрос.
+    private ItemRequest request;
 }

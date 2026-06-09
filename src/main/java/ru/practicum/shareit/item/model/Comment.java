@@ -1,33 +1,34 @@
 package ru.practicum.shareit.item.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "comments")
-@Data
+@Getter
+@Setter
+@RequiredArgsConstructor
 @NoArgsConstructor
 public class Comment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // уникальный идентификатор комментария;
+    private Long id;
 
     @Column(name = "text", nullable = false)
-    private String text; // содержимое комментария;
+    private String text;
 
     @ManyToOne
     @JoinColumn(name = "item_id", nullable = false)
-    private Item item; // вещь, к которой относится комментарий;
+    private Item item;
 
     @ManyToOne
     @JoinColumn(name = "author_id", nullable = false)
-    private User author; //автор комментария;
+    private User author;
 
     @Column(name = "created_at", nullable = false)
-    private LocalDateTime created; // дата создания комментария
+    private LocalDateTime created;
 }

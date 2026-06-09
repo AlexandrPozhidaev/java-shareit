@@ -15,11 +15,11 @@ public class UserDto {
 
     public interface OnUpdate {}
 
-    private Long id; // уникальный идентификатор пользователя;
+    private Long id;
 
-    private String name; // имя или логин пользователя;
+    private String name;
 
     @NotNull(message = "Email must not be null", groups = OnCreate.class)
     @Email(message = "Формат электронной почты должен соответствовать требованиям", groups = OnCreate.class)
-    private String email; // адрес электронной почты
+    private String email;
 }

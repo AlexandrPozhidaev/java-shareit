@@ -1,5 +1,8 @@
 package ru.practicum.shareit.item.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,14 +14,19 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class CommentDto {
 
-    private Long id; // уникальный идентификатор комментария;
+    private Long id;
 
-    private String text; // содержимое комментария;
+    @NotBlank(message = "Комментарий не может быть пустым")
+    private String text;
 
-    private Long authorId; // id автора комментария;
+    @NotNull(message = "ID автора комментария не может отсутствовать")
+    private Long authorId;
 
-    private String authorName; // имя автора
+    @NotBlank(message = "Имя автора комментария не может быть пустым")
+    @Size(max = 30, message = "Имя автора не может быть длиннее 50 символов")
+    private String authorName;
 
-    private LocalDateTime created; // дата создания комментария
+    @NotNull(message = "Дата создания комментария не может отсутствовать")
+    private LocalDateTime created;
 
 }

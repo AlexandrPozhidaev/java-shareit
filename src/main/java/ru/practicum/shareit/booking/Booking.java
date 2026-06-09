@@ -16,23 +16,23 @@ public class Booking {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; //  уникальный идентификатор бронирования;
+    private Long id;
 
     @Column(name = "start_date", nullable = false)
-    private LocalDateTime start; // дата и время начала бронирования;
+    private LocalDateTime start;
 
     @Column(name = "end_date", nullable = false)
-    private LocalDateTime end; // дата и время конца бронирования;
+    private LocalDateTime end;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "item_id", nullable = false)
-    private Item item; // вещь, которую пользователь бронирует;
+    private Item item;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "booker_id", nullable = false)
-    private User booker; // пользователь, который осуществляет бронирование;
+    private User booker;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private BookingStatus status; // статус бронирования
+    private BookingStatus status;
 }
