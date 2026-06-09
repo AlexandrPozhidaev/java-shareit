@@ -11,19 +11,18 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @RequiredArgsConstructor
-@NoArgsConstructor
 public class ItemRequest {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // уникальный идентификатор запроса;
+    private Long id;
 
-    private String description; // текст запроса, содержащий описание требуемой вещи;
+    private String description;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "requestor_id")
-    private User requestor; // пользователь, создавший запрос;
+    private User requestor;
 
-    private LocalDateTime created; // дата и время создания запроса.
+    private LocalDateTime created;
 
 }
