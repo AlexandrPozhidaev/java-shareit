@@ -1,21 +1,28 @@
 package ru.practicum.shareit.request;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.persistence.*;
+import lombok.*;
 import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
 
-@Data
-@NoArgsConstructor
+@Entity
+@Table(name = "requests")
+@Getter
+@Setter
+@RequiredArgsConstructor
 public class ItemRequest {
 
-    private Long id; // уникальный идентификатор запроса;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    private String description; // текст запроса, содержащий описание требуемой вещи;
+    private String description;
 
-    private User requestor; // пользователь, создавший запрос;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "requestor_id")
+    private User requestor;
 
-    private LocalDateTime created; // дата и время создания запроса.
+    private LocalDateTime created;
 
 }

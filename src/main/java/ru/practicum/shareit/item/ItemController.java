@@ -1,13 +1,17 @@
 package ru.practicum.shareit.item;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 
 import java.util.List;
+
+import static ru.practicum.shareit.Header.HEADER;
 
 @RestController
 @RequestMapping("/items")
@@ -21,7 +25,7 @@ public class ItemController {
 
     @PostMapping
     public ResponseEntity<ItemDto> createItem(
-            @RequestHeader("X-Sharer-User-Id") Long userId,
+            @RequestHeader(HEADER) @Positive Long userId,
             @Valid @RequestBody ItemDto itemDto) {
 
         log.debug("ItemDto: name='{}', description='{}', available={}",
@@ -33,8 +37,8 @@ public class ItemController {
 
     @PatchMapping("/{itemId}")
     public ResponseEntity<ItemDto> updateItem(
-            @PathVariable Long itemId,
-            @RequestHeader("X-Sharer-User-Id") Long userId,
+            @PathVariable @Positive Long itemId,
+            @RequestHeader(HEADER) @Positive Long userId,
             @RequestBody ItemDto itemDto) {
 
         itemDto.setId(itemId);
@@ -44,8 +48,8 @@ public class ItemController {
 
     @GetMapping("/{itemId}")
     public ResponseEntity<ItemDto> getItemById(
-            @PathVariable Long itemId,
-            @RequestHeader("X-Sharer-User-Id") Long userId) {
+            @PathVariable @Positive Long itemId,
+            @RequestHeader(HEADER) @Positive Long userId) {
 
         ItemDto itemDto = itemService.getItemById(itemId, userId);
         return ResponseEntity.ok(itemDto);
@@ -53,7 +57,7 @@ public class ItemController {
 
     @GetMapping
     public ResponseEntity<List<ItemDto>> getItemsByOwner(
-            @RequestHeader("X-Sharer-User-Id") Long userId) {
+            @RequestHeader(HEADER) @Positive Long userId) {
 
         List<ItemDto> items = itemService.getItemsByOwner(userId);
         return ResponseEntity.ok(items);
@@ -65,5 +69,15 @@ public class ItemController {
 
         List<ItemDto> items = itemService.searchItems(text);
         return ResponseEntity.ok(items);
+    }
+
+    @PostMapping("/{itemId}/comment")
+    public ResponseEntity<CommentDto> addComment(
+            @PathVariable @Positive Long itemId,
+            @RequestHeader(HEADER) @Positive Long authorId,
+            @RequestBody @Valid CommentDto commentDto) {
+
+        CommentDto savedComment = itemService.addComment(itemId, authorId, commentDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedComment);
     }
 }

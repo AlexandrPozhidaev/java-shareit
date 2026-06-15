@@ -11,12 +11,15 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class UserDto {
 
-    private Long id; // уникальный идентификатор пользователя;
+    public interface OnCreate {}
 
-    @NotNull(message = "Имя обязательно")
-    private String name; // имя или логин пользователя;
+    public interface OnUpdate {}
 
-    @NotNull(message = "Электронная почта обязательна")
-    @Email(message = "Формат электронной почты должен соответствовать требованиям")
-    private String email; // адрес электронной почты
+    private Long id;
+
+    private String name;
+
+    @NotNull(message = "Email must not be null", groups = OnCreate.class)
+    @Email(message = "Формат электронной почты должен соответствовать требованиям", groups = OnCreate.class)
+    private String email;
 }

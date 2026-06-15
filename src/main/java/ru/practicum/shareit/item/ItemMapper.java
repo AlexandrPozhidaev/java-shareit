@@ -2,21 +2,30 @@ package ru.practicum.shareit.item;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import ru.practicum.shareit.booking.dto.BookingDto;
+import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ItemMapper {
 
     public static ItemDto toItemDto(Item item) {
-        return new ItemDto(
-                item.getId(),
-                item.getName(),
-                item.getDescription(),
-                item.getAvailable(),
-                item.getOwner() != null ? item.getOwner().getId() : null,
-                item.getRequest() != null ? item.getRequest().getId() : null
-        );
+        ItemDto dto = new ItemDto();
+        dto.setId(item.getId());
+        dto.setName(item.getName());
+        dto.setDescription(item.getDescription());
+        dto.setAvailable(item.getAvailable());
+        dto.setOwner(item.getOwner() != null ? item.getOwner().getId() : null);
+        dto.setRequest(item.getRequest() != null ? item.getRequest().getId() : null);
+        dto.setLastBooking(null);
+        dto.setNextBooking(null);
+        dto.setComments(new ArrayList<>());
+
+        return dto;
     }
 
     public static Item toItem(ItemDto itemDto) {
@@ -31,5 +40,29 @@ public class ItemMapper {
         }
         return item;
 
+    }
+
+    public static ItemDto toItemDtoForBooking(Item item) {
+        if (item == null) {
+            return null;
+        }
+        ItemDto dto = new ItemDto();
+        dto.setId(item.getId());
+        dto.setName(item.getName());
+        dto.setDescription(item.getDescription());
+        dto.setAvailable(item.getAvailable());
+        dto.setOwner(item.getOwner() != null ? item.getOwner().getId() : null);
+        return dto;
+    }
+
+    public static ItemDto toItemDtoWithDetails(Item item,
+                                               BookingDto lastBooking,
+                                               BookingDto nextBooking,
+                                               List<CommentDto> comments) {
+        ItemDto dto = toItemDto(item);
+        dto.setLastBooking(lastBooking);
+        dto.setNextBooking(nextBooking);
+        dto.setComments(comments);
+        return dto;
     }
 }
