@@ -64,7 +64,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <mainClass>ru.practicum.ShareItGateway</mainClass>
+                    <mainClass>ru.practicum.ShareItGatewayApplication</mainClass>
                 </configuration>
             </plugin>
         </plugins>
