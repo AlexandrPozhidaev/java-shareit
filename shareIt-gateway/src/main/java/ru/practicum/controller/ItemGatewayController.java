@@ -8,10 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.client.ItemClient;
 import ru.practicum.dto.CommentDto;
 import ru.practicum.dto.ItemDto;
-import ru.practicum.exception.NotFoundException;
 import ru.practicum.exception.ValidationException;
-
-import java.util.List;
 
 import static ru.practicum.Header.HEADER;
 

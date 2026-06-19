@@ -10,10 +10,8 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.client.BookingClient;
 import ru.practicum.dto.BookItemRequestDto;
-import ru.practicum.dto.BookingDto;
 import ru.practicum.dto.BookingState;
 
-import java.util.List;
 import java.util.Optional;
 
 import static ru.practicum.Header.HEADER;

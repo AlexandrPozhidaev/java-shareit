@@ -1,6 +1,5 @@
 package ru.practicum.controller;
 
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
