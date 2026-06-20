@@ -1,0 +1,8 @@
+{
+  "id": 1,
+  "itemId": 10,
+  "bookerId": 20,
+  "start": "2026-06-20T10:00:00",
+  "end": "2026-06-25T18:00:00",
+  "status": "APPROVED"
+}
