@@ -1,13 +1,10 @@
 package controllers;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import ru.practicum.ShareItServerApplication;
-import ru.practicum.controller.ItemController;
 import ru.practicum.controller.ItemRequestController;
 import ru.practicum.dto.ItemRequestDto;
 

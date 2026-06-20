@@ -12,7 +12,6 @@ import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-
 @JsonTest
 @ContextConfiguration(classes = ShareItServerApplication.class)
 public class TestJson {
