@@ -1,7 +1,6 @@
 package ru.practicum.controller;
 
 import jakarta.validation.Valid;
-import jakarta.validation.ValidationException;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Positive;
 import lombok.extern.slf4j.Slf4j;
@@ -10,9 +9,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.client.BookingClient;
 import ru.practicum.dto.BookItemRequestDto;
-import ru.practicum.dto.BookingState;
-
-import java.util.Optional;
 
 import static ru.practicum.Header.HEADER;
 
