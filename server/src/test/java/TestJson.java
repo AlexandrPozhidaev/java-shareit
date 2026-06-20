@@ -46,16 +46,14 @@ public class TestJson {
 
     @Test
     void bookingDto_shouldDeserializeCorrectly() throws Exception {
-        String jsonContent = """
-            {
-                "id": 1,
-                "itemId": 10,
-                "bookerId": 20,
-                "start": "2026-06-20T10:00:00",
-                "end": "2026-06-25T18:00:00",
-                "status": "APPROVED"
-            }
-        """;
+        String jsonContent = "{" +
+                "\"id\": 1," +
+                "\"itemId\": 10," +
+                "\"bookerId\": 20," +
+                "\"start\": \"2026-06-20T10:00:00\"," +
+                "\"end\": \"2026-06-25T18:00:00\"," +
+                "\"status\": \"APPROVED\"" +
+                "}";
 
         BookingDto result = json.parseObject(jsonContent);
 
