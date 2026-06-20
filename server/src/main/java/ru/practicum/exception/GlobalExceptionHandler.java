@@ -1,5 +1,6 @@
 package ru.practicum.exception;
 
+import org.hibernate.LazyInitializationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -76,25 +77,27 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(ex.getStatusCode()).body(errorResponse);
     }
 
-    @ExceptionHandler(NullPointerException.class)
-    public ResponseEntity<ErrorResponse> handleNullPointerException(NullPointerException ex) {
-        log.error("NPE в контроллере: ", ex);
-        ErrorResponse errorResponse = new ErrorResponse(
-                "Обнаружено null-значение",
-                HttpStatus.BAD_REQUEST.value()
-        );
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
-    }
-
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleAllUnhandledExceptions(Exception ex) {
-        log.error("Необработанное исключение: ", ex);
+        String errorMessage = "Внутренняя ошибка сервера: " + ex.getMessage();
+        log.error(errorMessage, ex);
+
         ErrorResponse errorResponse = new ErrorResponse(
-                "Внутренняя ошибка сервера",
+                errorMessage,
                 HttpStatus.INTERNAL_SERVER_ERROR.value()
         );
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(errorResponse);
+    }
+
+    @ExceptionHandler(LazyInitializationException.class)
+    public ResponseEntity<ErrorResponse> handleLazyInitializationException(LazyInitializationException ex) {
+        log.error("Ошибка загрузки связанных сущностей: ", ex);
+        ErrorResponse errorResponse = new ErrorResponse(
+                "Ошибка загрузки данных: связанные сущности не загружены",
+                HttpStatus.INTERNAL_SERVER_ERROR.value()
+        );
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }
 }

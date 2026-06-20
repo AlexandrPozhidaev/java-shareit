@@ -60,8 +60,6 @@ public class BookingGatewayController {
             @RequestParam(defaultValue = "ALL") String state,
             @RequestParam(defaultValue = "0") @Min(0) Integer from,
             @RequestParam(defaultValue = "10") @Positive Integer size) {
-        validateState(state);
-        validatePaginationParams(from, size);
         log.info("Received get user bookings request for user ID: {}, state: {}, from: {}, size: {}",
                 userId, state, from, size);
         return bookingClient.getUserBookings(userId, state, from, size);
@@ -73,25 +71,9 @@ public class BookingGatewayController {
             @RequestParam(defaultValue = "ALL") String state,
             @RequestParam(defaultValue = "0") @Min(0) Integer from,
             @RequestParam(defaultValue = "10") @Positive Integer size) {
-        validateState(state);
         log.info("Received get owner bookings request for owner ID: {}, state: {}, from: {}, size: {}",
                 ownerId, state, from, size);
         return bookingClient.getOwnerBookings(ownerId, state, from, size);
     }
 
-    private void validateState(String state) {
-        Optional<BookingState> bookingState = BookingState.from(state);
-        if (state != null && !bookingState.isPresent()) {
-            throw new IllegalArgumentException("Invalid booking state: " + state);
-        }
-    }
-
-    private void validatePaginationParams(Integer from, Integer size) {
-        if (from != null && from < 0) {
-            throw new ValidationException("Параметр 'from' не может быть отрицательным");
-        }
-        if (size != null && size <= 0) {
-            throw new ValidationException("Параметр 'size' должен быть положительным");
-        }
-    }
 }

@@ -8,6 +8,7 @@ import ru.practicum.dto.BookingStatus;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface BookingRepository extends JpaRepository<Booking, Long> {
 
@@ -68,4 +69,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findByItemIdOrderByStartDesc(@Param("itemId") Long itemId);
 
     List<Booking> findByItemIdAndStartIsBeforeAndEndIsAfter(Long itemId, LocalDateTime end, LocalDateTime start);
+
+    @EntityGraph(attributePaths = {"booker", "item", "item.owner"})
+    Optional<Booking> findById(Long id);
 }
