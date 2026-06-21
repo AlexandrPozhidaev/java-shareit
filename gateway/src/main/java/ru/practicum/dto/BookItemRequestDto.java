@@ -1,9 +1,6 @@
 package ru.practicum.dto;
 
-import jakarta.validation.constraints.Future;
-import jakarta.validation.constraints.FutureOrPresent;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -26,7 +23,8 @@ public class BookItemRequestDto {
     @Future
     private LocalDateTime end;
 
-    public boolean isValid() {
-        return start != null && end != null && end.isAfter(start);
+    @AssertTrue(message = "Дата окончания должна быть позже даты начала")
+    public boolean isValidDateRange() {
+        return end != null && start != null && end.isAfter(start);
     }
 }

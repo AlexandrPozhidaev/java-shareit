@@ -1,5 +1,6 @@
 package ru.practicum.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Positive;
@@ -30,6 +31,8 @@ public class BookingGatewayController {
     private final UserClient userClient;
     private final ItemClient itemClient;
 
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
     public BookingGatewayController(BookingClient bookingClient, UserClient userClient, ItemClient itemClient) {
         this.bookingClient = bookingClient;
         this.userClient = userClient;
@@ -40,7 +43,9 @@ public class BookingGatewayController {
     public ResponseEntity<Object> createBooking(
             @RequestHeader(HEADER) @Positive Long userId,
             @Valid @RequestBody BookItemRequestDto bookingDto) {
-        log.info("Received create booking request for user ID: {}", userId);
+
+        log.info("Creating booking for user ID: {}, item ID: {}, start: {}, end: {}",
+                userId, bookingDto.getItemId(), bookingDto.getStart(), bookingDto.getEnd());
 
         ResponseEntity<Object> userResponse = userClient.getUserById(userId);
         if (userResponse.getStatusCode().is4xxClientError()) {
@@ -52,13 +57,17 @@ public class BookingGatewayController {
             throw new ValidationException("Вещь с ID " + bookingDto.getItemId() + " не найдена");
         }
 
-        ItemDto itemDto = (ItemDto) itemResponse.getBody();
-        if (!itemDto.getAvailable()) {
-            throw new ValidationException("Вещь недоступна для бронирования");
+        Object responseBody = itemResponse.getBody();
+        ItemDto itemDto;
+
+        if (responseBody instanceof Map) {
+            itemDto = objectMapper.convertValue(responseBody, ItemDto.class);
+        } else {
+            itemDto = (ItemDto) responseBody;
         }
 
-        if (!bookingDto.isValid()) {
-            throw new ValidationException("Дата окончания должна быть позже даты начала");
+        if (!itemDto.getAvailable()) {
+            throw new ValidationException("Вещь недоступна для бронирования");
         }
 
         checkBookingOverlap(bookingDto, userId);
@@ -94,6 +103,7 @@ public class BookingGatewayController {
 
         Map<String, Object> parameters = Map.of("approved", approved);
         return bookingClient.approveBooking(ownerId, bookingId, approved);
+
     }
 
     @GetMapping("/{bookingId}")

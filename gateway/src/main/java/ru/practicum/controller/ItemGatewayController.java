@@ -111,6 +111,9 @@ public class ItemGatewayController {
         if (commentDto.getText() == null || commentDto.getText().trim().isEmpty()) {
             throw new ValidationException("Текст комментария не может быть пустым");
         }
+        if (commentDto.getText().length() > 1000) {
+            throw new ValidationException("Текст комментария не может превышать 1000 символов");
+        }
 
         ResponseEntity<Object> itemResponse = itemClient.getItemById(authorId, itemId);
         if (itemResponse.getStatusCode().is4xxClientError()) {
