@@ -170,10 +170,6 @@ public class ItemServiceImpl implements ItemService {
         User author = userRepository.findById(authorId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
 
-        if (commentDto.getText() == null || commentDto.getText().trim().isEmpty()) {
-            throw new ValidationException("Текст комментария не может быть пустым");
-        }
-
         LocalDateTime now = LocalDateTime.now();
 
         List<Booking> pastBookings = bookingRepository.findByBookerIdAndItemIdAndEndIsBeforeAndStatus(

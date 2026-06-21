@@ -66,4 +66,9 @@ public class BookingClient extends BaseClient {
         );
         return get("/owner", ownerId, parameters);
     }
+
+    public ResponseEntity<Object> getBookingsByItemId(Long itemId) {
+        log.debug("Получение бронирований для вещи с ID: {}", itemId);
+        return get("/items/{itemId}/bookings", null, Map.of("itemId", itemId));
+    }
 }

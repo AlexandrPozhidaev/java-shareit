@@ -2,12 +2,13 @@ package ru.practicum.controller;
 
 import jakarta.validation.constraints.Positive;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.client.UserClient;
 import ru.practicum.dto.UserDto;
 
-@RestController
+@Controller
 @RequestMapping(path = "/users")
 public class UserGatewayController {
     private final UserClient userClient;

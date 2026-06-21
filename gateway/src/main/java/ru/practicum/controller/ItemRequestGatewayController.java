@@ -2,6 +2,7 @@ package ru.practicum.controller;
 
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.client.ItemRequestClient;
@@ -9,7 +10,7 @@ import ru.practicum.dto.ItemRequestDto;
 
 import static ru.practicum.Header.HEADER;
 
-@RestController
+@Controller
 @RequestMapping(path = "/requests")
 @Validated
 public class ItemRequestGatewayController {

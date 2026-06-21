@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Positive;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.dto.CommentDto;
 import ru.practicum.dto.ItemDto;
@@ -14,7 +15,7 @@ import java.util.List;
 
 import static ru.practicum.Header.HEADER;
 
-@RestController
+@Controller
 @RequestMapping("/items")
 @Slf4j
 public class ItemController {

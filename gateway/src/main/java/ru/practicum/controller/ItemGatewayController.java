@@ -4,15 +4,17 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.client.ItemClient;
 import ru.practicum.dto.CommentDto;
 import ru.practicum.dto.ItemDto;
+import ru.practicum.exception.AccessDeniedException;
 import ru.practicum.exception.ValidationException;
 
 import static ru.practicum.Header.HEADER;
 
-@RestController
+@Controller
 @RequestMapping("/items")
 @Slf4j
 public class ItemGatewayController {
@@ -27,12 +29,12 @@ public class ItemGatewayController {
             @RequestHeader(HEADER) @Positive Long userId,
             @Valid @RequestBody ItemDto itemDto) {
 
-        log.info("Creating item for user ID: {}, item: name='{}'", userId, itemDto.getName());
+        log.info("Создание вещи для пользователя ID: {}, item: name='{}'", userId, itemDto.getName());
         try {
             return itemClient.createItem(userId, itemDto);
         } catch (ClassCastException e) {
-            log.error("Unexpected response type when creating item for user {}", userId, e);
-            throw new ValidationException("Invalid response format from server");
+            log.error("Неожиданный ответ при создании вещи пользователя {}", userId, e);
+            throw new ValidationException("Некорректный формат ответа сервера");
         }
     }
 
@@ -42,14 +44,14 @@ public class ItemGatewayController {
             @RequestHeader(HEADER) @Positive Long userId,
             @RequestBody ItemDto itemDto) {
 
-        log.info("Updating item ID: {} for user ID: {}", itemId, userId);
+        log.info("Обновление вещи ID: {} пользователя ID: {}", itemId, userId);
         itemDto.setId(itemId);
 
         try {
             return itemClient.updateItem(userId, itemId, itemDto);
         } catch (ClassCastException e) {
-            log.error("Unexpected response type when updating item {}", itemId, e);
-            throw new ValidationException("Invalid response format from server");
+            log.error("Неожиданный тип ответа при обновлении вещи {}", itemId, e);
+            throw new ValidationException("Некорректный формат ответа сервера");
         }
     }
 
@@ -58,15 +60,15 @@ public class ItemGatewayController {
             @PathVariable @Positive Long itemId,
             @RequestHeader(HEADER) @Positive Long userId) {
 
-        log.info("Getting item ID: {} for user ID: {}", itemId, userId);
+        log.info("Получение вещи ID: {} для пользователя ID: {}", itemId, userId);
 
 
 
          try {
              return itemClient.getItemById(userId, itemId);
         } catch (ClassCastException e) {
-            log.error("Unexpected response type when getting item {}", itemId, e);
-            throw new ValidationException("Invalid response format from server");
+            log.error("Неожиданный тип ответа при получении вещи {}", itemId, e);
+            throw new ValidationException("Некорректный формат ответа сервера");
         }
     }
 
@@ -74,13 +76,13 @@ public class ItemGatewayController {
     public ResponseEntity<Object> getItemsByOwner(
             @RequestHeader(HEADER) @Positive Long userId) {
 
-        log.info("Getting items for owner ID: {}, from: {}, size: {}", userId);
+        log.info("Получение вещей владельца ID: {}, from: {}, size: {}", userId);
 
         try {
             return itemClient.getAllItemsByOwner(userId);
         } catch (ClassCastException e) {
-            log.error("Unexpected response type when getting items for user {}", userId, e);
-            throw new ValidationException("Invalid response format from server");
+            log.error("Неожиданный тип ответа при получении вещей пользователя {}", userId, e);
+            throw new ValidationException("Некорректный формат ответа сервера");
         }
     }
 
@@ -88,13 +90,13 @@ public class ItemGatewayController {
     public ResponseEntity<Object> searchItems(
             @RequestParam String text) {
 
-        log.info("Searching items with text: '{}', from: {}, size: {}", text);
+        log.info("Поиск элементов: '{}'", text);
 
         try {
             return itemClient.searchItems(text);
         } catch (ClassCastException e) {
-            log.error("Unexpected search response format for text: '{}'", text, e);
-            throw new ValidationException("Invalid search response format");
+            log.error("Неожиданный формат ответа поиска: '{}'", text, e);
+            throw new ValidationException("Недопустимый формат ответа на запрос");
         }
     }
 
@@ -104,25 +106,31 @@ public class ItemGatewayController {
             @RequestHeader(HEADER) @Positive Long authorId,
             @RequestBody @Valid CommentDto commentDto) {
 
-        log.info("Adding comment for item ID: {}, author ID: {}", itemId, authorId);
+        log.info("Добавление комментария для вещи ID: {}, author ID: {}", itemId, authorId);
+
+        if (commentDto.getText() == null || commentDto.getText().trim().isEmpty()) {
+            throw new ValidationException("Текст комментария не может быть пустым");
+        }
+
+        ResponseEntity<Object> itemResponse = itemClient.getItemById(authorId, itemId);
+        if (itemResponse.getStatusCode().is4xxClientError()) {
+            throw new AccessDeniedException("Вещь не найдена или недоступна");
+        }
+
+        ItemDto item = (ItemDto) itemResponse.getBody();
+        if (item.getOwner().equals(authorId)) {
+            throw new ValidationException("Пользователь не может комментировать собственную вещь");
+        }
+
+        if (!item.getAvailable()) {
+            throw new ValidationException("Вещь недоступна для аренды");
+        }
+
         try {
             return itemClient.addComment(itemId, authorId, commentDto);
         } catch (ClassCastException e) {
-            log.error("Unexpected response type when adding comment to item {}", itemId, e);
-            throw new ValidationException("Invalid comment response format");
+            log.error("Неожиданный тип ответа при добавлении комментария к вещи {}", itemId, e);
+            throw new ValidationException("Недопустимый формат ответа");
         }
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T> T extractBody(ResponseEntity<Object> response, Class<T> type) {
-        if (response.getBody() == null) {
-            return null;
-        }
-        if (!type.isInstance(response.getBody())) {
-            throw new ClassCastException(
-                    "Expected type: " + type.getSimpleName() +
-                            ", but got: " + response.getBody().getClass().getSimpleName());
-        }
-        return (T) response.getBody();
     }
 }

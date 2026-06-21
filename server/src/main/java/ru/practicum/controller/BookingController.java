@@ -1,8 +1,12 @@
 package ru.practicum.controller;
 
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Positive;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.booking.BookingService;
 import ru.practicum.dto.BookingDto;
@@ -11,7 +15,7 @@ import java.util.List;
 
 import static ru.practicum.Header.HEADER;
 
-@RestController
+@Controller
 @RequestMapping(path = "/bookings")
 public class BookingController {
 
@@ -49,7 +53,9 @@ public class BookingController {
     @GetMapping
     public ResponseEntity<List<BookingDto>> getUserBookings(
             @RequestHeader(HEADER) @Positive Long userId,
-            @RequestParam(defaultValue = "ALL") String state) {
+            @RequestParam(defaultValue = "ALL") String state,
+            @RequestParam(defaultValue = "0") @Min(0) Integer from,
+            @RequestParam(defaultValue = "10") @Positive Integer size) {
         List<BookingDto> bookings = bookingService.getUserBookings(userId, state);
         return ResponseEntity.ok(bookings);
     }
@@ -57,7 +63,9 @@ public class BookingController {
     @GetMapping("/owner")
     public ResponseEntity<List<BookingDto>> getOwnerBookings(
             @RequestHeader(HEADER) @Positive Long ownerId,
-            @RequestParam(defaultValue = "ALL") String state) {
+            @RequestParam(defaultValue = "ALL") String state,
+            @RequestParam(defaultValue = "0") @Min(0) Integer from,
+            @RequestParam(defaultValue = "10") @Positive Integer size) {
         List<BookingDto> bookings = bookingService.getOwnerBookings(ownerId, state);
         return ResponseEntity.ok(bookings);
     }
