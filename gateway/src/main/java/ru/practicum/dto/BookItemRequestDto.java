@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class BookItemRequestDto {
 
+    @NotNull
     @Positive
     private long itemId;
 

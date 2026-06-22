@@ -10,14 +10,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.client.BookingClient;
-import ru.practicum.client.ItemClient;
-import ru.practicum.client.UserClient;
 import ru.practicum.dto.*;
-import ru.practicum.exception.AccessDeniedException;
-import ru.practicum.exception.ValidationException;
-
-import java.util.List;
-import java.util.Map;
 
 import static ru.practicum.Header.HEADER;
 
@@ -28,15 +21,12 @@ import static ru.practicum.Header.HEADER;
 public class BookingGatewayController {
 
     private final BookingClient bookingClient;
-    private final UserClient userClient;
-    private final ItemClient itemClient;
+
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public BookingGatewayController(BookingClient bookingClient, UserClient userClient, ItemClient itemClient) {
+    public BookingGatewayController(BookingClient bookingClient) {
         this.bookingClient = bookingClient;
-        this.userClient = userClient;
-        this.itemClient = itemClient;
     }
 
     @PostMapping
@@ -44,35 +34,9 @@ public class BookingGatewayController {
             @RequestHeader(HEADER) @Positive Long userId,
             @Valid @RequestBody BookItemRequestDto bookingDto) {
 
-        log.info("Creating booking for user ID: {}, item ID: {}, start: {}, end: {}",
+        log.info("Создание бронирования для пользователя ID: {}, item ID: {}, start: {}, end: {}",
                 userId, bookingDto.getItemId(), bookingDto.getStart(), bookingDto.getEnd());
-
-        ResponseEntity<Object> userResponse = userClient.getUserById(userId);
-        if (userResponse.getStatusCode().is4xxClientError()) {
-            throw new ValidationException("Пользователь с ID " + userId + " не найден");
-        }
-
-        ResponseEntity<Object> itemResponse = itemClient.getItemById(userId, bookingDto.getItemId());
-        if (itemResponse.getStatusCode().is4xxClientError()) {
-            throw new ValidationException("Вещь с ID " + bookingDto.getItemId() + " не найдена");
-        }
-
-        Object responseBody = itemResponse.getBody();
-        ItemDto itemDto;
-
-        if (responseBody instanceof Map) {
-            itemDto = objectMapper.convertValue(responseBody, ItemDto.class);
-        } else {
-            itemDto = (ItemDto) responseBody;
-        }
-
-        if (!itemDto.getAvailable()) {
-            throw new ValidationException("Вещь недоступна для бронирования");
-        }
-
-        checkBookingOverlap(bookingDto, userId);
-
-        return bookingClient.createBooking(userId, bookingDto);
+                return bookingClient.createBooking(userId, bookingDto);
     }
 
     @PatchMapping("/{bookingId}")
@@ -82,26 +46,6 @@ public class BookingGatewayController {
             @RequestParam boolean approved) {
         log.info("Received approve booking request for booking ID: {}, owner ID: {}, approved: {}",
                 bookingId, ownerId, approved);
-
-        ResponseEntity<Object> bookingResponse = bookingClient.getBookingById(ownerId, bookingId);
-        if (bookingResponse.getStatusCode().is4xxClientError()) {
-            throw new ValidationException("Бронирование с ID " + bookingId + " не найдено");
-        }
-
-        BookingDto booking = (BookingDto) bookingResponse.getBody();
-
-        if (!booking.getItem().getOwner().equals(ownerId)) {
-            throw new AccessDeniedException("Пользователь не является владельцем вещи");
-        }
-
-        if (BookingStatus.CANCELLED.equals(booking.getStatus())) {
-            throw new ValidationException("Нельзя подтвердить/отклонить отменённое бронирование");
-        }
-        if (approved && BookingStatus.APPROVED.equals(booking.getStatus())) {
-            throw new ValidationException("Бронирование уже подтверждено");
-        }
-
-        Map<String, Object> parameters = Map.of("approved", approved);
         return bookingClient.approveBooking(ownerId, bookingId, approved);
 
     }
@@ -133,40 +77,16 @@ public class BookingGatewayController {
             @RequestParam(defaultValue = "10") @Positive Integer size) {
         log.info("Received get owner bookings request for owner ID: {}, state: {}, from: {}, size: {}",
                 ownerId, state, from, size);
-
-        try {
-            BookingState.from(state);
-        } catch (IllegalArgumentException e) {
-            throw new ValidationException("Недопустимое значение state: " + state);
-        }
-
         return bookingClient.getOwnerBookings(ownerId, state, from, size);
     }
 
-    private void checkBookingOverlap(BookItemRequestDto requestDto, Long bookerId) {
-        ResponseEntity<Object> existingBookingsResponse =
-                bookingClient.getBookingsByItemId(requestDto.getItemId());
-
-        if (existingBookingsResponse.getStatusCode().is2xxSuccessful()) {
-            if (existingBookingsResponse.getBody() instanceof List) {
-                @SuppressWarnings("unchecked")
-                List<BookingDto> existingBookings =
-                        (List<BookingDto>) existingBookingsResponse.getBody();
-
-                for (BookingDto existing : existingBookings) {
-                    if (isOverlapping(requestDto, existing)) {
-                        throw new ValidationException(
-                                "Вещь уже забронирована на указанный период: " +
-                                        "с " + existing.getStart() + " по " + existing.getEnd());
-                    }
-                }
-            }
+    private <T> T convertResponseToDto(ResponseEntity<Object> response, Class<T> targetClass) {
+        if (response.getBody() == null) {
+            return null;
         }
-    }
-
-
-    private boolean isOverlapping(BookItemRequestDto newBooking, BookingDto existing) {
-        return newBooking.getStart().isBefore(existing.getEnd()) &&
-                newBooking.getEnd().isAfter(existing.getStart());
+        if (targetClass.isInstance(response.getBody())) {
+            return targetClass.cast(response.getBody());
+        }
+        return objectMapper.convertValue(response.getBody(), targetClass);
     }
 }

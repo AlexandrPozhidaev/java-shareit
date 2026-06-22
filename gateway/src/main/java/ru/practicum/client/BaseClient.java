@@ -3,6 +3,8 @@ package ru.practicum.client;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -117,5 +119,18 @@ public class BaseClient {
         }
 
         return responseBuilder.build();
+    }
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    protected <T> T convertResponse(Object responseBody, Class<T> targetClass) {
+        if (responseBody == null) {
+            return null;
+        }
+        if (targetClass.isInstance(responseBody)) {
+            return targetClass.cast(responseBody);
+        }
+        return objectMapper.convertValue(responseBody, targetClass);
     }
 }

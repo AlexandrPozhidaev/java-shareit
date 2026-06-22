@@ -57,4 +57,14 @@ public class GlobalExceptionHandler {
         ErrorResponse errorResponse = new ErrorResponse(ex.getMessage(), HttpStatus.CONFLICT.value());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
     }
+
+    @ExceptionHandler(ClassCastException.class)
+    public ResponseEntity<ErrorResponse> handleClassCastException(ClassCastException ex) {
+        log.error("Ошибка приведения типа: ", ex);
+        ErrorResponse errorResponse = new ErrorResponse(
+                "Ошибка формата данных от сервера: " + ex.getMessage(),
+                HttpStatus.INTERNAL_SERVER_ERROR.value()
+        );
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+    }
 }

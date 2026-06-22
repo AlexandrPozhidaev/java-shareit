@@ -1,9 +1,11 @@
 package ru.practicum.booking;
 
+import jakarta.validation.ValidationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.dto.BookingDto;
 import ru.practicum.dto.BookingStatus;
+import ru.practicum.exception.AccessDeniedException;
 import ru.practicum.exception.NotFoundException;
 import ru.practicum.item.Item;
 import ru.practicum.item.ItemRepository;
@@ -35,9 +37,31 @@ public class BookingServiceImpl implements BookingService {
     @Transactional
     public BookingDto createBooking(BookingDto bookingDto, Long bookerId) {
         User booker = userRepository.findById(bookerId)
-                .orElseThrow(() -> new NotFoundException("Пользователь с ID " + bookerId + " не найден"));
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+
+        Item item = itemRepository.findById(bookingDto.getItemId())
+                .orElseThrow(() -> new NotFoundException("Вещь не найдена"));
+
+        if (!item.getAvailable()) {
+            throw new ValidationException("Вещь недоступна для бронирования");
+        }
+
+        List<Booking> existingBookings = bookingRepository
+                .findByItemIdAndStartIsBeforeAndEndIsAfter(bookingDto.getItemId(),
+                        bookingDto.getEnd(), bookingDto.getStart());
+        if (!existingBookings.isEmpty()) {
+            throw new ValidationException("Вещь уже забронирована на указанный период");
+        }
+
+        if (bookingDto.getStart() == null || bookingDto.getEnd() == null) {
+            throw new ValidationException("Даты начала и конца бронирования обязательны");
+        }
+        if (!bookingDto.getStart().isBefore(bookingDto.getEnd())) {
+            throw new ValidationException("Дата начала должна быть раньше даты окончания");
+        }
         Booking booking = BookingMapper.toBooking(bookingDto);
         booking.setBooker(booker);
+        booking.setItem(item);
         booking.setStatus(BookingStatus.WAITING);
         Booking savedBooking = bookingRepository.save(booking);
         return BookingMapper.toBookingDto(savedBooking);
@@ -50,6 +74,19 @@ public class BookingServiceImpl implements BookingService {
                 .orElseThrow(() -> new NotFoundException("Бронирование не найдено"));
 
         Item item = booking.getItem();
+        if (!item.getOwner().getId().equals(ownerId)) {
+            throw new ValidationException("Только владелец вещи может подтверждать бронирование");
+        }
+
+        if (booking.getStatus() != BookingStatus.WAITING) {
+            throw new ValidationException("Можно подтверждать только бронирования в статусе WAITING");
+        }
+
+        if (approved) {
+            booking.setStatus(BookingStatus.APPROVED);
+        } else {
+            booking.setStatus(BookingStatus.REJECTED);
+        }
 
         return BookingMapper.toBookingDto(booking);
     }
@@ -61,6 +98,10 @@ public class BookingServiceImpl implements BookingService {
 
         Long bookerId = booking.getBooker().getId();
         Long ownerId = booking.getItem().getOwner().getId();
+
+        if (!bookerId.equals(userId) && !ownerId.equals(userId)) {
+            throw new ValidationException("Доступ к бронированию есть только у автора или владельца вещи");
+        }
 
         return BookingMapper.toBookingDto(booking);
     }

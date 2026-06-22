@@ -106,34 +106,13 @@ public class ItemGatewayController {
             @RequestHeader(HEADER) @Positive Long authorId,
             @RequestBody @Valid CommentDto commentDto) {
 
-        log.info("Добавление комментария для вещи ID: {}, author ID: {}", itemId, authorId);
-
-        if (commentDto.getText() == null || commentDto.getText().trim().isEmpty()) {
-            throw new ValidationException("Текст комментария не может быть пустым");
-        }
-        if (commentDto.getText().length() > 1000) {
-            throw new ValidationException("Текст комментария не может превышать 1000 символов");
-        }
-
-        ResponseEntity<Object> itemResponse = itemClient.getItemById(authorId, itemId);
-        if (itemResponse.getStatusCode().is4xxClientError()) {
-            throw new AccessDeniedException("Вещь не найдена или недоступна");
-        }
-
-        ItemDto item = (ItemDto) itemResponse.getBody();
-        if (item.getOwner().equals(authorId)) {
-            throw new ValidationException("Пользователь не может комментировать собственную вещь");
-        }
-
-        if (!item.getAvailable()) {
-            throw new ValidationException("Вещь недоступна для аренды");
-        }
-
+        log.info("Adding comment for item ID: {}, author ID: {}", itemId, authorId);
         try {
             return itemClient.addComment(itemId, authorId, commentDto);
         } catch (ClassCastException e) {
-            log.error("Неожиданный тип ответа при добавлении комментария к вещи {}", itemId, e);
-            throw new ValidationException("Недопустимый формат ответа");
+            log.error("Unexpected response type when adding comment to item {}", itemId, e);
+            throw new ValidationException("Invalid comment response format");
+
         }
     }
 }
