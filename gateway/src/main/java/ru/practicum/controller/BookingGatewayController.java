@@ -11,6 +11,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.client.BookingClient;
 import ru.practicum.dto.*;
+import ru.practicum.exception.NotValidHeaderException;
 
 import static ru.practicum.Header.HEADER;
 
@@ -33,7 +34,7 @@ public class BookingGatewayController {
     public ResponseEntity<Object> createBooking(
             @RequestHeader(HEADER) @Positive Long userId,
             @Valid @RequestBody BookItemRequestDto bookingDto) {
-
+        validateUserIdHeader(userId);
         log.info("Создание бронирования для пользователя ID: {}, item ID: {}, start: {}, end: {}",
                 userId, bookingDto.getItemId(), bookingDto.getStart(), bookingDto.getEnd());
                 return bookingClient.createBooking(userId, bookingDto);
@@ -54,6 +55,8 @@ public class BookingGatewayController {
     public ResponseEntity<Object> getBookingById(
             @PathVariable @Positive Long bookingId,
             @RequestHeader(HEADER) @Positive Long userId) {
+        validateUserIdHeader(userId);
+
         log.info("Received get booking request for booking ID: {}, user ID: {}", bookingId, userId);
         return bookingClient.getBookingById(userId, bookingId);
     }
@@ -64,8 +67,15 @@ public class BookingGatewayController {
             @RequestParam(defaultValue = "ALL") String state,
             @RequestParam(defaultValue = "0") @Min(0) Integer from,
             @RequestParam(defaultValue = "10") @Positive Integer size) {
+
+        state = state.toUpperCase();
+        if (!BookingState.from(state).isPresent()) {
+            throw new IllegalArgumentException("Недопустимое состояние бронирования: " + state);
+        }
+
         log.info("Received get user bookings request for user ID: {}, state: {}, from: {}, size: {}",
                 userId, state, from, size);
+        validateUserIdHeader(userId);
         return bookingClient.getUserBookings(userId, state, from, size);
     }
 
@@ -75,18 +85,23 @@ public class BookingGatewayController {
             @RequestParam(defaultValue = "ALL") String state,
             @RequestParam(defaultValue = "0") @Min(0) Integer from,
             @RequestParam(defaultValue = "10") @Positive Integer size) {
+
+        state = state.toUpperCase();
+        if (!BookingState.from(state).isPresent()) {
+            throw new IllegalArgumentException("Недопустимое состояние бронирования: " + state);
+        }
+
         log.info("Received get owner bookings request for owner ID: {}, state: {}, from: {}, size: {}",
                 ownerId, state, from, size);
         return bookingClient.getOwnerBookings(ownerId, state, from, size);
     }
 
-    private <T> T convertResponseToDto(ResponseEntity<Object> response, Class<T> targetClass) {
-        if (response.getBody() == null) {
-            return null;
+    private void validateUserIdHeader(Long userId) {
+        if (userId == null) {
+            throw new NotValidHeaderException("Заголовок " + HEADER + " обязателен для всех запросов");
         }
-        if (targetClass.isInstance(response.getBody())) {
-            return targetClass.cast(response.getBody());
+        if (userId <= 0) {
+            throw new IllegalArgumentException("ID пользователя должен быть положительным числом");
         }
-        return objectMapper.convertValue(response.getBody(), targetClass);
     }
 }
