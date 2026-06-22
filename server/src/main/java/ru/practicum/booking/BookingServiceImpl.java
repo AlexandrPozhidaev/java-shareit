@@ -5,7 +5,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.dto.BookingDto;
 import ru.practicum.dto.BookingStatus;
-import ru.practicum.exception.AccessDeniedException;
 import ru.practicum.exception.NotFoundException;
 import ru.practicum.item.Item;
 import ru.practicum.item.ItemRepository;
