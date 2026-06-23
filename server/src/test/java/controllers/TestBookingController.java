@@ -2,6 +2,9 @@ package controllers;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import ru.practicum.ShareItServerApplication;
@@ -13,6 +16,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.hamcrest.Matchers.hasSize;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -73,26 +78,41 @@ class TestBookingController extends TestControllerBase {
 
     @Test
     void getUserBookings_shouldReturnAllBookings() throws Exception {
-        List<BookingDto> bookings = List.of(new BookingDto());
-        bookings.get(0).setId(1L);
-        when(bookingService.getUserBookings(1L, "ALL")).thenReturn(bookings);
+        BookingDto dto = new BookingDto();
+        dto.setId(1L);
+        dto.setItemId(10L);
+        dto.setStatus(ru.practicum.dto.BookingStatus.WAITING);
+
+        List<BookingDto> content = List.of(dto);
+
+        Page<BookingDto> page = new PageImpl<>(content);
+
+        when(bookingService.getUserBookings(eq(1L), eq("ALL"), any(Pageable.class)))
+                .thenReturn(page);
 
         mockMvc.perform(get("/bookings")
                         .header("X-Sharer-User-Id", 1L))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].id").value(1));
+                .andExpect(jsonPath("$.content", hasSize(1)))
+                .andExpect(jsonPath("$.content[0].id").value(1L));
     }
 
     @Test
     void getOwnerBookings_shouldReturnOwnersBookings() throws Exception {
-        List<BookingDto> bookings = List.of(new BookingDto());
-        bookings.get(0).setId(1L);
-        when(bookingService.getOwnerBookings(1L, "ALL")).thenReturn(bookings);
+        BookingDto dto = new BookingDto();
+        dto.setId(2L);
+        dto.setItemId(20L);
+        dto.setStatus(ru.practicum.dto.BookingStatus.APPROVED);
+
+        List<BookingDto> content = List.of(dto);
+        Page<BookingDto> page = new PageImpl<>(content);
+
+        when(bookingService.getOwnerBookings(eq(1L), eq("ALL"), any(Pageable.class)))
+                .thenReturn(page);
 
         mockMvc.perform(get("/bookings/owner")
                         .header("X-Sharer-User-Id", 1L))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(1)));
+                .andExpect(jsonPath("$.content", hasSize(1)));
     }
 }

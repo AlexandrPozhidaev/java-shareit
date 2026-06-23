@@ -2,14 +2,16 @@ package ru.practicum.controller;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Positive;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.booking.BookingService;
 import ru.practicum.dto.BookingDto;
-
-import java.util.List;
 
 import static ru.practicum.Header.HEADER;
 
@@ -49,22 +51,36 @@ public class BookingController {
     }
 
     @GetMapping
-    public ResponseEntity<List<BookingDto>> getUserBookings(
+    public ResponseEntity<Page<BookingDto>> getUserBookings(
             @RequestHeader(HEADER) @Positive Long userId,
             @RequestParam(defaultValue = "ALL") String state,
             @RequestParam(defaultValue = "0") @Min(0) Integer from,
             @RequestParam(defaultValue = "10") @Positive Integer size) {
-        List<BookingDto> bookings = bookingService.getUserBookings(userId, state);
+
+        int pageNumber = from / size;
+        Pageable pageable = PageRequest.of(
+                pageNumber,
+                size,
+                Sort.by(Sort.Direction.DESC, "start")
+        );
+                Page<BookingDto> bookings = bookingService.getUserBookings(userId, state, pageable);
         return ResponseEntity.ok(bookings);
     }
 
     @GetMapping("/owner")
-    public ResponseEntity<List<BookingDto>> getOwnerBookings(
+    public ResponseEntity<Page<BookingDto>> getOwnerBookings(
             @RequestHeader(HEADER) @Positive Long ownerId,
             @RequestParam(defaultValue = "ALL") String state,
             @RequestParam(defaultValue = "0") @Min(0) Integer from,
             @RequestParam(defaultValue = "10") @Positive Integer size) {
-        List<BookingDto> bookings = bookingService.getOwnerBookings(ownerId, state);
+
+        int pageNumber = from / size;
+        Pageable pageable = PageRequest.of(
+                pageNumber,
+                size,
+                Sort.by(Sort.Direction.DESC, "start")
+        );
+        Page<BookingDto> bookings = bookingService.getOwnerBookings(ownerId, state, pageable);
         return ResponseEntity.ok(bookings);
     }
 }

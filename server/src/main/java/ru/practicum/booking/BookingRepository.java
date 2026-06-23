@@ -1,11 +1,13 @@
 package ru.practicum.booking;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import ru.practicum.dto.BookingStatus;
 
+import org.springframework.data.domain.Pageable;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -13,10 +15,10 @@ import java.util.Optional;
 public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     @EntityGraph(attributePaths = {"booker", "item", "item.owner"})
-    List<Booking> findByBookerIdOrderByStartDesc(Long bookerId);
+    Page<Booking> findByBookerIdOrderByStartDesc(Long bookerId, Pageable pageable);
 
     @EntityGraph(attributePaths = {"booker", "item", "item.owner"})
-    List<Booking> findByItemOwnerIdOrderByStartDesc(Long ownerId);
+    Page<Booking> findByItemOwnerIdOrderByStartDesc(Long ownerId, Pageable pageable);
 
     @Query("SELECT b FROM Booking b " +
             "WHERE b.booker.id = :bookerId " +
@@ -29,21 +31,21 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             @Param("currentDateTime") LocalDateTime currentDateTime,
             @Param("status") BookingStatus status);
 
-    List<Booking> findByBookerIdAndStartIsBeforeAndEndIsAfter(Long userId, LocalDateTime now, LocalDateTime now1);
+    Page<Booking> findByBookerIdAndStartIsBeforeAndEndIsAfter(Long userId, LocalDateTime now, LocalDateTime now1, Pageable pageable);
 
-    List<Booking> findByBookerIdAndEndIsBefore(Long userId, LocalDateTime now);
+    Page<Booking> findByBookerIdAndEndIsBefore(Long userId, LocalDateTime now, Pageable pageable);
 
-    List<Booking> findByBookerIdAndStartIsAfter(Long userId, LocalDateTime now);
+    Page<Booking> findByBookerIdAndStartIsAfter(Long userId, LocalDateTime now, Pageable pageable);
 
-    List<Booking> findByBookerIdAndStatus(Long userId, BookingStatus bookingStatus);
+    Page<Booking> findByBookerIdAndStatus(Long userId, BookingStatus bookingStatus, Pageable pageable);
 
-    List<Booking> findByItemOwnerIdAndStartIsBeforeAndEndIsAfter(Long ownerId, LocalDateTime now, LocalDateTime now1);
+    Page<Booking> findByItemOwnerIdAndStartIsBeforeAndEndIsAfter(Long ownerId, LocalDateTime now, LocalDateTime now1, Pageable pageable);
 
-    List<Booking> findByItemOwnerIdAndEndIsBefore(Long ownerId, LocalDateTime now);
+    Page<Booking> findByItemOwnerIdAndEndIsBefore(Long ownerId, LocalDateTime now, Pageable pageable);
 
-    List<Booking> findByItemOwnerIdAndStartIsAfter(Long ownerId, LocalDateTime now);
+    Page<Booking> findByItemOwnerIdAndStartIsAfter(Long ownerId, LocalDateTime now, Pageable pageable);
 
-    List<Booking> findByItemOwnerIdAndStatus(Long ownerId, BookingStatus bookingStatus);
+    Page<Booking> findByItemOwnerIdAndStatus(Long ownerId, BookingStatus bookingStatus, Pageable pageable);
 
     @Query("SELECT b FROM Booking b " +
             "WHERE b.item.owner.id = :ownerId " +
