@@ -14,7 +14,9 @@ import ru.practicum.client.BookingClient;
 import ru.practicum.dto.*;
 import ru.practicum.exception.NotValidHeaderException;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static ru.practicum.Header.HEADER;
 
@@ -83,13 +85,28 @@ public class BookingGatewayController {
         ResponseEntity<Object> clientResponse = bookingClient.getUserBookings(userId, state, from, size);
 
         if (clientResponse.getBody() == null) {
-            return ResponseEntity.ok(List.of());
+            return ResponseEntity.ok(Collections.emptyList());
         }
 
-        @SuppressWarnings("unchecked")
-        Page<BookingDto> page = (Page<BookingDto>) clientResponse.getBody();
+        List<BookingDto> resultList = Collections.emptyList();
+        Object body = clientResponse.getBody();
 
-        return ResponseEntity.ok(page.getContent());
+        if (body instanceof Map<?, ?>) {
+            Map<?, ?> mapBody = (Map<?, ?>) body;
+
+            if (mapBody.containsKey("content")) {
+                Object contentObj = mapBody.get("content");
+
+                if (contentObj instanceof List<?>) {
+                    List<?> rawList = (List<?>) contentObj;
+
+                    @SuppressWarnings("unchecked")
+                    List<BookingDto> typedList = (List<BookingDto>) rawList;
+                    resultList = typedList;
+                }
+            }
+        }
+        return ResponseEntity.ok(resultList);
     }
 
     @GetMapping("/owner")
