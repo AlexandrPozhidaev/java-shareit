@@ -5,6 +5,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Positive;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.query.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
@@ -12,6 +13,8 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.client.BookingClient;
 import ru.practicum.dto.*;
 import ru.practicum.exception.NotValidHeaderException;
+
+import java.util.List;
 
 import static ru.practicum.Header.HEADER;
 
@@ -62,7 +65,7 @@ public class BookingGatewayController {
     }
 
     @GetMapping
-    public ResponseEntity<Object> getUserBookings(
+    public ResponseEntity<List<BookingDto>> getUserBookings(
             @RequestHeader(HEADER) @Positive Long userId,
             @RequestParam(defaultValue = "ALL") String state,
             @RequestParam(defaultValue = "0") @Min(0) Integer from,
@@ -76,7 +79,17 @@ public class BookingGatewayController {
         log.info("Received get user bookings request for user ID: {}, state: {}, from: {}, size: {}",
                 userId, state, from, size);
         validateUserIdHeader(userId);
-        return bookingClient.getUserBookings(userId, state, from, size);
+
+        ResponseEntity<Object> clientResponse = bookingClient.getUserBookings(userId, state, from, size);
+
+        if (clientResponse.getBody() == null) {
+            return ResponseEntity.ok(List.of());
+        }
+
+        @SuppressWarnings("unchecked")
+        Page<BookingDto> page = (Page<BookingDto>) clientResponse.getBody();
+
+        return ResponseEntity.ok(page.getContent());
     }
 
     @GetMapping("/owner")
